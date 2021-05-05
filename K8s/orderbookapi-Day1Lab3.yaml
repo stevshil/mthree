@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orderbook
+  name: orderbookapi
+  namespace: sre-example-dev
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      name: orderbookapi
+  template:
+    metadata:
+      labels:
+        name: orderbookapi
+    spec:
+      containers:
+        - env:
+            - name: DBPASSWORD
+              value: secret123
+            - name: DBUSER
+              value: root
+          image: public.ecr.aws/c0k5g8z4/sre-course:orderbookapi-dev-25
+          name: orderbookapi
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+             httpGet:
+                path: /status
+                port: 8080
+                httpHeaders:
+                - name: Content-Type
+                  value: Application/json
+                initialDelaySeconds: 8
+                periodSeconds: 3
+          startupProbe:
+             httpGet:
+                path: /status
+                port: 8080
+             failureThreshold: 15
+             periodSeconds: 10
+          readinessProbe:
+             httpGet:
+                path: /status
+                port: 8080
+                httpHeaders:
+                - name: Content-Type
+                  value: Application/json
+                initialDelaySeconds: 8
+                periodSeconds: 3
+      restartPolicy: Always
