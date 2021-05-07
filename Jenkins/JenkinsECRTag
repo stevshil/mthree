@@ -1,0 +1,111 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        builder: promotion
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: awscli
+        image: amazon/aws-cli
+        command:
+        - cat
+        tty: true
+      - name: docker
+        image: docker
+        command:
+        - cat
+        volumeMounts:
+        - name: dockersock
+          mountPath: "/var/run/docker.sock"
+        tty: true
+      volumes:
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('Promote to Production') {
+      steps {
+          container(name: 'awscli') {
+              sh '''
+              export AWS_DEFAULT_REGION=us-east-1
+              aws ecr-public get-login-password >ecrpw
+              #AccountID=$(aws sts get-caller-identity | grep Account | sed -e 's/^.*: "//' -e 's/".*//')
+'''
+          }
+        container(name: 'docker') {
+          script {
+            buildNumber = Jenkins.instance.getItem('sre-orderbook').getItem('steve').lastSuccessfulBuild.number
+          }
+          sh '''
+          echo "LAST Build: ''' + buildNumber + '''"
+          cat ecrpw | docker login --username AWS --password-stdin ${ECR_REPO}
+          rm ecrpw
+
+          # Do API service
+          if ! docker pull ${ECR_REPO}:orderbookapi-prod-''' + buildNumber +'''
+          then
+            docker pull ${ECR_REPO}:orderbookapi-dev-''' + buildNumber +'''
+            docker tag ${ECR_REPO}:orderbookapi-dev-''' + buildNumber +''' ${ECR_REPO}:orderbookapi-prod-''' + buildNumber +'''
+            if ! docker push ${ECR_REPO}:orderbookapi-prod-''' + buildNumber +'''
+            then
+              echo "Error pushing API to repository"
+              exitvalue=1
+            fi
+          else
+            echo "Skipping API as Production version is at latest"
+          fi
+
+          # Do DB service
+          if ! docker pull ${ECR_REPO}:orderbookdb-prod-''' + buildNumber +'''
+          then
+            if ! docker pull ${ECR_REPO}:orderbookdb-dev-''' + buildNumber +'''
+            then
+              echo "The latest version is not this number"
+              echo "Skipping database"
+            else
+              docker tag ${ECR_REPO}:orderbookdb-dev-''' + buildNumber +''' ${ECR_REPO}:orderbookdb-prod-''' + buildNumber +'''
+              if ! docker push ${ECR_REPO}:orderbookapi-prod-''' + buildNumber +'''
+              then
+                echo "Error pushing DB to repository"
+                exitvalue="${exitvalue}2"
+              fi
+            fi
+          else
+            echo "Skipping DB as Production version is at latest"
+          fi
+
+          # Clean up and report
+          for envs in dev prod
+          do
+            docker rmi ${ECR_REPO}:orderbookapi-${envs}-''' + buildNumber +''' ${ECR_REPO}:orderbookdb-$envs-''' + buildNumber +'''
+          done
+
+          case ${exitvalue} in
+            0) echo "Update OK"
+               ;;
+            1) echo "API failed to push to repository"
+               ;;
+            2) echo "DB failed to push to repository"
+               ;;
+            12) echo "API and DB failed to push to repository"
+               ;;
+          esac
+
+          exit ${exitvalue}
+'''
+        }
+      }
+    }
+  }
+  environment {
+    ECR_REPO = 'public.ecr.aws/c0k5g8z4/sre-course'
+  }
+}

@@ -1,0 +1,10 @@
+method com.cloudbees.hudson.plugins.folder.computed.ComputedFolder getLastSuccessfulBuild
+method hudson.model.ItemGroup getItem java.lang.String
+method hudson.model.Job getLastSuccessfulBuild
+method hudson.model.Run getNumber
+new java.io.File java.lang.String
+staticMethod jenkins.model.Jenkins getInstance
+
+
+# These need to be added in the Manage Jenkins -> In-process Script Approval
+# Add to the No pending signature approvals
