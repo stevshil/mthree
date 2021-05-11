@@ -1,0 +1,36 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        builder: promotion
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: awscli
+        image: amazon/aws-cli
+        command:
+        - cat
+        tty: true
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('Promote to Production') {
+      steps {
+          container(name: 'awscli') {
+            sh '''
+            aws ecr describe-images --repository-name sre-course --query 'imageDetails[].imageTags[]'
+'''
+        }
+      }
+    }
+  }
+  environment {
+    ECR_REPO = '108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course​'
+    AWS_DEFAULT_REGION='us-east-1'
+  }
+}

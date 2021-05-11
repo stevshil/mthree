@@ -28,7 +28,6 @@ pipeline {
             sh '''
             export AWS_DEFAULT_REGION=us-east-1
             imgNum=''' + buildNumber + '''
-            aws ecr-public get-login-password >ecrpw
             APIMANIFEST=$(aws ecr batch-get-image --repository-name sre-course --image-ids imageTag=${imageAPIDevName}${imgNum} --query 'images[].imageManifest' --output text)
             DBMANIFEST=$(aws ecr batch-get-image --repository-name sre-course --image-ids imageTag=${imageDBDevName}${imgNum} --query 'images[].imageManifest' --output text)
             # Check API
