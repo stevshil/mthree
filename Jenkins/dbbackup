@@ -1,0 +1,55 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        podtype: backup
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: awscli
+        image: amazon/aws-cli
+        command:
+        - cat
+        tty: true
+      - name: mysqlclient
+        image: mysql:8.0.25
+        command:
+        - cat
+        volumeMounts:
+        - name: /cache
+          mountPath: cache-volume
+        tty: true
+      volumes:
+      - name: cache-volume
+        emptyDir: {}
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('Backup Database') {
+      steps {
+        container(name: 'mysqlclient') {
+          sh '''
+            mysqldump --single-transaction -u${DBUSER} -p${DBPASSWORD} -h${DBHOST} orderbook >/cache/orderbookdb-`date +%Y%m%d`.sql
+  '''
+        }
+        container(name: 'awscli') {
+            sh '''
+              aws s3 cp /cache/orderbookdb-*.sql ${S3BUCKET}
+'''
+        }
+      }
+    }
+  }
+  environment {
+    AWS_DEFAULT_REGION='us-east-1'
+    S3BUCKET = 's3://XYZ'
+    DBUSER='root'
+    DBPASSWORD='secret123'
+    DBHOST='orderbookdb.sre-example-dev'
+  }
+}
