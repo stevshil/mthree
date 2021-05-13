@@ -14,14 +14,17 @@ pipeline {
         image: amazon/aws-cli
         command:
         - cat
+        volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
         tty: true
       - name: mysqlclient
         image: mysql:8.0.25
         command:
         - cat
         volumeMounts:
-        - name: /cache
-          mountPath: cache-volume
+        - mountPath: /cache
+          name: cache-volume
         tty: true
       volumes:
       - name: cache-volume
@@ -40,6 +43,10 @@ pipeline {
         container(name: 'awscli') {
             sh '''
               aws s3 cp /cache/orderbookdb-*.sql ${S3BUCKET}
+              # Show file content DEBUGGING only
+              # cat /cache/orderbookdb-*.sql
+              # Remove file
+              rm -f /cache/orderbookdb-*.sql
 '''
         }
       }
