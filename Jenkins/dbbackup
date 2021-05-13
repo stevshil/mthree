@@ -47,7 +47,7 @@ pipeline {
   }
   environment {
     AWS_DEFAULT_REGION='us-east-1'
-    S3BUCKET = 's3://XYZ'
+    S3BUCKET = 's3://sre-course/sreexample/'
     DBUSER='root'
     DBPASSWORD='secret123'
     DBHOST='orderbookdb.sre-example-dev'
