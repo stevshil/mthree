@@ -32,6 +32,9 @@ pipeline {
         }
       }
     }
+    stage('Promote to Production') {
+      build job 'steve-job-promotion'
+    }
   }
   environment {
     APPURL='http://orderbookapi.sre-example-dev:8080'
