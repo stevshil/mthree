@@ -33,7 +33,7 @@ pipeline {
       }
     }
     stage('Promote to Production') {
-      build job 'steve-job-promotion'
+      build job: 'steve-job-promotion'
     }
   }
   environment {
