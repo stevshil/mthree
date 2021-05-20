@@ -1,0 +1,44 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        builder: promotion
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: webcheck
+        image: centos:centos8.3.2011
+        command:
+        - cat
+        tty: true
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('Check Application Status') {
+      steps {
+          container(name: 'webcheck') {
+            sh '''
+              if ! curl -s --connect-timeout 5 --max-time 10 "$APPURL"
+              then
+                echo "Service not responding"
+                exit 1
+              fi
+'''
+        }
+      }
+    }
+    stage('Promote to Production') {
+      steps {
+        build job: 'steve-job-promotion'
+      }
+    }
+  }
+  environment {
+    APPURL='http://orderbookapi.instructor-dev:8080'
+  }
+}

@@ -1,0 +1,10 @@
+apiVersion: image.toolkit.fluxcd.io/v1alpha2
+kind: ImageRepository
+metadata:
+  name: instructor
+  namespace: flux-system
+spec:
+  interval: 15m
+  image: 108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course
+  secretRef:
+    name: ecr-credentials

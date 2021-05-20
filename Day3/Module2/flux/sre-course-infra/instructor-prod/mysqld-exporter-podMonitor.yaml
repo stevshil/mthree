@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: mysqld-exporter
+  namespace: instructor-prod
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: mysqld-exporter
+      app.kubernetes.io/name: orderbook
+  podMetricsEndpoints:
+    - port: http-prom

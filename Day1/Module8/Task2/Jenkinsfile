@@ -1,0 +1,55 @@
+pipeline {
+  agent {
+    node {
+      label 'kaniko'
+    }
+
+  }
+  stages {
+    stage('Check file') {
+        steps {
+            sh '''if test -d SQL
+then
+  for file in SQL/*
+  do
+    if test $file –nt updates
+    then
+  		echo "$file"
+  	fi
+  done | wc –l >${JOB_NAME}${BUILD_ID}
+else
+  echo 0 >${JOB_NAME}${BUILD_ID}
+fi
+'''
+        }
+    }
+    stage('Build and Publish DB') {
+      steps {
+        container(name: 'kaniko') {
+          sh '''echo \'{ "credsStore": "ecr-login" }\' > /kaniko/.docker/config.json
+result=$(cat ${JOB_NAME}${BUILD_ID})
+rm ${JOB_NAME}${BUILD_ID}
+if [ $result –gt 0 ]
+then
+  /kaniko/executor -f `pwd`/compose/Dockerfile.db -c `pwd` --insecure --skip-tls-verify --cache=false --destination=${ECR_REPO}:instructordb-dev-${BUILD_NUMBER}
+else
+	echo "Skipping Database build as no updates"
+fi
+'''
+        }
+      }
+    }
+    stage('Build and Publish API') {
+      steps {
+        container(name: 'kaniko') {
+          sh '''echo \'{ "credsStore": "ecr-login" }\' > /kaniko/.docker/config.json
+/kaniko/executor -f `pwd`/compose/Dockerfile.api -c `pwd` --insecure --skip-tls-verify --cache=false --destination=${ECR_REPO}:instructorapi-dev-${BUILD_NUMBER}'''
+        }
+      }
+    }
+
+  }
+  environment {
+    ECR_REPO = '108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course'
+  }
+}

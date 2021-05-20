@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orderbook
+  name: orderbookapi
+  namespace: instructor-dev
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: orderbookapi
+  template:
+    metadata:
+      labels:
+        name: orderbookapi
+    spec:
+      containers:
+      - env:
+        - name: DBPASSWORD
+          value: secret123
+        - name: DBUSER
+          value: root
+        image: "108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course:instructorapi-dev-1" # {"$imagepolicy": "flux-system:instructordevapi"}
+        name: orderbookapi
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8080
+            httpHeaders:
+            - name: Content-Type
+              value: Application/json
+            initialDelaySeconds: 5
+            periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8080
+            httpHeaders:
+            - name: Content-Type
+              value: Application/json
+      restartPolicy: Always

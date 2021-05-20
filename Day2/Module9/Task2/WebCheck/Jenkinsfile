@@ -1,0 +1,67 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        builder: promotion
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: webcheck
+        image: centos:centos8.3.2011
+        command:
+        - cat
+        tty: true
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('HOME PAGE') {
+      steps {
+          container(name: 'webcheck') {
+            sh '''
+              if ! curl -s --connect-timeout 5 --max-time 10 "$HOMEURL"
+              then
+                echo "Service not responding"
+                exit 1
+              fi
+'''
+        }
+      }
+    }
+    stage('Status Check') {
+      steps {
+        container(name: 'webcheck') {
+          sh '''
+            if (( $(curl -s "$STATUSURL" | tr ',' '\n' | grep -c UP) < 6 ) ))
+            then
+              echo "Service not OK"
+              exit 1
+            fi
+'''
+        }
+      }
+    }
+    stage('History Check') {
+      steps {
+        container(name: 'webcheck') {
+          sh '''
+            if (( $($curl -s "$HISTURL" | grep -c Dennis) < 5 ))
+            then
+              echo "History missing initial data"
+              exit 1
+            fi
+'''
+        }
+      }
+    }
+  }
+  environment {
+    HOMEURL='http://orderbookapi.instructor-dev:8080'
+    STATUSURL='http://orderbookapi.instructor-dev:8080/status'
+    HISTURL='http://orderbookapi.instructor-dev:8080/history'
+  }
+}

@@ -1,0 +1,75 @@
+pipeline {
+  agent {
+    kubernetes {
+        yaml """\
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        builder: promotion
+    spec:
+      serviceAccountName: jenkins-agent
+      containers:
+      - name: awscli
+        image: amazon/aws-cli
+        command:
+        - cat
+        tty: true
+    """.stripIndent()
+    }
+  }
+  stages {
+    stage('Promote to Production') {
+      steps {
+          container(name: 'awscli') {
+            script {
+              buildNumber = Jenkins.instance.getItem('sre-orderbook').getItem('steve').lastSuccessfulBuild.number
+            }
+            sh '''
+            export AWS_DEFAULT_REGION=us-east-1
+            imgNum=''' + buildNumber + '''
+            APIMANIFEST=$(aws ecr batch-get-image --repository-name sre-course --image-ids imageTag=${imageAPIDevName}${imgNum} --query 'images[].imageManifest' --output text)
+            DBMANIFEST=$(aws ecr batch-get-image --repository-name sre-course --image-ids imageTag=${imageDBDevName}${imgNum} --query 'images[].imageManifest' --output text)
+            # Check API
+            if [ $(aws ecr describe-images --repository-name sre-course | grep "${imageAPIProdName}${imgNum}" | wc -l) -eq 0 ]
+            then
+              # We don't have prod so tag Dev to prod
+              if ! aws ecr put-image --repository-name sre-course --image-tag ${imageAPIProdName}${imgNum} --image-manifest "$APIMANIFEST"
+              then
+                exitvalue=1
+              fi
+            fi
+            if [ $(aws ecr describe-images --repository-name sre-course | grep "${imageDBProdName}${imgNum}" | wc -l) -eq 0 ]
+            then
+              # We don't have prod so tag Dev to prod
+              if ! aws ecr put-image --repository-name sre-course --image-tag ${imageDBProdName}${imgNum} --image-manifest "$APIMANIFEST"
+              then
+                exitvalue="${exitvalue}2"
+              fi
+            fi
+
+          case ${exitvalue} in
+            0) echo "Update OK"
+               ;;
+            1) echo "API failed to push to repository"
+               ;;
+            2) echo "DB failed to push to repository"
+               ;;
+            12) echo "API and DB failed to push to repository"
+               ;;
+          esac
+
+          exit ${exitvalue}
+'''
+        }
+      }
+    }
+  }
+  environment {
+    ECR_REPO = '108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course'
+    imageAPIDevName='instructorapi-dev-'
+    imageAPIProdName='instructorapi-prod-'
+    imageDBDevName='instructordb-dev-'
+    imageDBProdName='instructordb-prod-'
+  }
+}

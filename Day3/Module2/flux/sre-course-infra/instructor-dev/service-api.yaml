@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: orderbook
+  name: orderbookapi
+  namespace: instructor-dev
+spec:
+  ports:
+  - name: "http"
+    port: 8080
+    targetPort: 8080
+  selector:
+    name: orderbookapi
+status:
+  loadBalancer: {}

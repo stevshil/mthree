@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orderbook
+  name: orderbookapi
+  namespace: instructor-prod
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: orderbookapi
+  template:
+    metadata:
+      labels:
+        name: orderbookapi
+    spec:
+      containers:
+      - env:
+        - name: DBPASSWORD
+          value: secret123
+        - name: DBUSER
+          value: root
+        image: "108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course:instructorapi-prod-1"
+        name: orderbookapi
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+      restartPolicy: Always

@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: prometheus-kube-sreexampledev-alertmanager.rules
+  namespace: instructor-dev
+spec:
+  groups:
+  - name: alertmanager.rules
+    rules:
+    - alert: TooMany404ForSREExampleDev
+      annotations:
+        message: |
+          Too many 404 requests  `{{ $labels.namespace }}/{{ $labels.service }}`​
+      expr: ((sum by (all) (rate(nginx_ingress_controller_requests{ exported_namespace="instructor-dev",status="404"}[1h])))/(sum by (all) (rate(nginx_ingress_controller_requests{exported_namespace="sre-example-dev"}[1h]))))*100 > 50
+      for: 2m
+      labels:
+        severity: critical

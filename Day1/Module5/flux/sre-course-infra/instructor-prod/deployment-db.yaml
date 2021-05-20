@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orderbook
+  name: orderbookdb
+  namespace: instructor-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: orderbookdb
+  template:
+    metadata:
+      labels:
+        name: orderbookdb
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: secret123
+        image: "108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course:instructordb-prod-1"
+        name: orderbookdb
+        imagePullPolicy: Always
+        ports:
+        - name: mysql
+          containerPort: 3306
+      restartPolicy: Always
