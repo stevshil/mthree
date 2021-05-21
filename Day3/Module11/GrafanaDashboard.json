@@ -102,7 +102,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by () (rate(nginx_ingress_controller_request_duration_seconds_sum{exported_namespace=\"sre-example-dev\",status=\"200\"}[1h]))+sum by () (rate(nginx_ingress_controller_response_duration_seconds_sum{exported_namespace=\"sre-example-dev\",status=\"200\"}[1h]))",
+          "expr": "sum by () (rate(nginx_ingress_controller_request_duration_seconds_sum{exported_namespace=\"instructor-dev\",status=\"200\"}[1h]))+sum by () (rate(nginx_ingress_controller_response_duration_seconds_sum{exported_namespace=\"instructor-dev\",status=\"200\"}[1h]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -677,7 +677,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "((sum by (all) (rate(nginx_ingress_controller_requests{ exported_namespace=\"sre-example-dev\",status=\"404\"}[1h])))/(sum by (all) (rate(nginx_ingress_controller_requests{exported_namespace=\"sre-example-dev\"}[1h]))))*100 > 50",
+          "expr": "((sum by (all) (rate(nginx_ingress_controller_requests{ exported_namespace=\"instructor-dev\",status=\"404\"}[1h])))/(sum by (all) (rate(nginx_ingress_controller_requests{exported_namespace=\"instructor-dev\"}[1h]))))*100 > 50",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -937,7 +937,7 @@
       "pluginVersion": "7.4.3",
       "targets": [
         {
-          "expr": "sum by (ingress) (kube_ingress_path{namespace=\"sre-example-dev\"})",
+          "expr": "sum by (ingress) (kube_ingress_path{namespace=\"instructor-dev\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1031,7 +1031,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "container_threads{namespace=\"sre-example-dev\",container=\"orderbookapi\"}",
+          "expr": "container_threads{namespace=\"instructor-dev\",container=\"orderbookapi\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1178,7 +1178,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"sre-example-dev\",container=\"orderbookapi\"}[10m]))",
+          "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"instructor-dev\",container=\"orderbookapi\"}[10m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1325,7 +1325,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "container_file_descriptors{namespace=\"sre-example-dev\",container=\"orderbookapi\"}",
+          "expr": "container_file_descriptors{namespace=\"instructor-dev\",container=\"orderbookapi\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1457,7 +1457,7 @@
       "pluginVersion": "7.4.3",
       "targets": [
         {
-          "expr": "sum by (type) (kube_pod_restart_policy{namespace=\"sre-example-dev\"})",
+          "expr": "sum by (type) (kube_pod_restart_policy{namespace=\"instructor-dev\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1521,7 +1521,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by (all) (rate(nginx_ingress_controller_requests{exported_namespace=\"sre-example-dev\"}[1h]))",
+          "expr": "sum by (all) (rate(nginx_ingress_controller_requests{exported_namespace=\"instructor-dev\"}[1h]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1618,7 +1618,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(nginx_ingress_controller_requests{exported_namespace=\"sre-example-dev\",status=\"404\"}[1h])",
+          "expr": "rate(nginx_ingress_controller_requests{exported_namespace=\"instructor-dev\",status=\"404\"}[1h])",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1745,7 +1745,7 @@
       "pluginVersion": "7.4.3",
       "targets": [
         {
-          "expr": "sum by (deployment) (rate(kube_deployment_created{namespace=\"sre-example-dev\"}[1d]))",
+          "expr": "sum by (deployment) (rate(kube_deployment_created{namespace=\"instructor-dev\"}[1d]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1778,7 +1778,7 @@
       "pluginVersion": "7.4.3",
       "targets": [
         {
-          "expr": "{namespace=\"sre-example-dev\",app=\"orderbookapi\"} |= \"error\" != \"stderr\"",
+          "expr": "{namespace=\"instructor-dev\",app=\"orderbookapi\"} |= \"error\" != \"stderr\"",
           "instant": false,
           "range": true,
           "refId": "A"
