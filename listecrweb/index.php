@@ -6,15 +6,10 @@
   }
   </style>
 </head>
-<?php
-  $ECRREPO=getenv('ECRREPO');
-  # $ECRREPO = $_ENV["ECRREPO"];
-?>
-<h1>Docker Repository Images from <?php echo $ECRREPO ?></h1>
+<h1>Docker Repository Images from $ECRREPO</h1>
 <table>
 <tr><th>Project</th><th>Images</th></tr>
 <?php
-  #$output=shell_exec('cat awsecr-output.example | sed -e "s/\"//g" -e "s/  *//g" | sort -rn');
   $output=shell_exec("aws ecr describe-images --repository-name $ECRREPO --query 'imageDetails[].imageTags[]'| sed -e 's/\"//g' -e 's/  *//g' | sort -rn");
   $list=explode("\n",$output);
   $lastproject="";

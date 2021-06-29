@@ -17,6 +17,8 @@ RUN dnf -y install php php-common php-opcache php-cli php-gd php-curl
 
 # Update Apache to use our ECRREPO variable
 RUN sed -i '/^ServerRoot/a\PassEnv ECRREPO' /etc/httpd/conf/httpd.conf
+RUN sed -i '/^ServerRoot/a\PassEnv ECR_REPO' /etc/httpd/conf/httpd.conf
+RUN sed -i '/^ServerRoot/a\PassEnv AWS_DEFAULT_REGION' /etc/httpd/conf/httpd.conf
 
 # Install App
 COPY index.php /var/www/html/index.php
@@ -26,4 +28,6 @@ COPY start.sh /app
 RUN chmod +x /app/start.sh
 
 ENV ECRREPO=sre-course
+ENV ECR_REPO='108174090253.dkr.ecr.us-east-1.amazonaws.com/sre-course​'
+ENV AWS_DEFAULT_REGION='us-east-1'
 ENTRYPOINT ["/app/start.sh"]
